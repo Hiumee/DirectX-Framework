@@ -14,8 +14,8 @@ DirectX::XMMATRIX CCamera::getCamera()
     //    DirectX::XMMatrixRotationRollPitchYaw(pitch, -yaw, 0.0f)
     //);
     
-    return DirectX::XMMatrixTranslation(-x, -y, -z)* DirectX::XMMatrixRotationNormal(DirectX::XMVectorSet(0.0f, -1.0f, 0.0f, 0.0f), yaw) *
-            DirectX::XMMatrixRotationNormal(DirectX::XMVectorSet(-1.0f,0.0f,0.0f,0.0f), roll);
+    return DirectX::XMMatrixTranslation(-x, -y, -z)* DirectX::XMMatrixRotationNormal(DirectX::XMVectorSet(0.0f, -1.0f, 0.0f, 0.0f), pitch) *
+            DirectX::XMMatrixRotationNormal(DirectX::XMVectorSet(-1.0f,0.0f,0.0f,0.0f), yaw);
 }
 
 void CCamera::setCamera(float x, float y, float z, float roll, float pitch, float yaw)

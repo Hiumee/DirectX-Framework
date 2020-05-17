@@ -35,6 +35,7 @@ private:
     std::unique_ptr<Cube> finder;
     CCamera camera;
     int mouseX, mouseY;
+    int mouseXUP, mouseYUP;
 
     int finderX, finderY;
     float findX, findY;

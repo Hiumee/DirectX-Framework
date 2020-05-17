@@ -243,6 +243,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="blue.png" />
     <Image Include="cake.dds" />
     <Image Include="cake.png" />
     <Image Include="path.png" />
@@ -250,6 +251,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="map.txt" />
+    <Text Include="maze.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

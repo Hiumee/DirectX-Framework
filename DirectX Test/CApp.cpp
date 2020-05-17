@@ -11,6 +11,28 @@
 #include <unordered_map>
 #include <map>
 
+
+void saveMaze(int table[20][20])
+{
+    std::ofstream fout("maze.txt");
+    for (int i = 0;i < 20;i++)
+    {
+        for (int j = 0;j < 20; j++)
+        {
+            if (table[j][i] == 1)
+            {
+                fout << 1;
+            }
+            else
+            {
+                fout << 0;
+            }
+        }
+        fout << '\n';
+    }
+    fout.close();
+}
+
 int h(std::pair<int,int> p, std::pair<int, int> end)
 {
     return abs(p.first - end.first) + abs(p.second - end.second);
@@ -91,7 +113,8 @@ CApp::CApp(HINSTANCE hInstance)
     testCubes[1].setPosition(point3d{ 0.0f,0.0f,0.0f });
     s = std::make_unique<Surface>(Surface::FromFile("wall.png"));
     auto pathSurfaceT = Surface::FromFile("path.png");
-    pTestTexture = std::make_unique<TCube>(window->getGraphics(), *s);
+    auto wallSurfaceT = Surface::FromFile("blue.png");
+    pTestTexture = std::make_unique<TCube>(window->getGraphics(), wallSurfaceT);
     pTestTexture->setPosition(point3d{ 0.0f,0.0f,0.0f });
     pTestTexture->setSize(point3d{ 0.5f,0.5f,0.5f});
     auto su = Surface::FromFile("macaroana.png");
@@ -124,7 +147,7 @@ CApp::CApp(HINSTANCE hInstance)
     tSurface->setSize(point3d{ 0.5f,0.5f,0.5f });
 
 
-    std::ifstream fin("map.txt");
+    std::ifstream fin("maze.txt");
     std::string line;
     int l = 0;
     while (fin >> line)
@@ -179,23 +202,23 @@ void CApp::tick()
     const float speed = 10.0f;
     if (window->getKeyboard().isDown('W'))
     {
-        camera.x -= eTime * speed * sinf(-camera.yaw);
-        camera.z += eTime * speed * cosf(-camera.yaw);
+        camera.x -= eTime * speed * sinf(-camera.pitch);
+        camera.z += eTime * speed * cosf(-camera.pitch);
     }
     if (window->getKeyboard().isDown('S'))
     {
-        camera.x += eTime * speed * sinf(-camera.yaw);
-        camera.z -= eTime * speed * cosf(-camera.yaw);
+        camera.x += eTime * speed * sinf(-camera.pitch);
+        camera.z -= eTime * speed * cosf(-camera.pitch);
     }
     if (window->getKeyboard().isDown('D'))
     {
-        camera.x += eTime * speed * cosf(camera.yaw);
-        camera.z -= eTime * speed * sinf(camera.yaw);
+        camera.x += eTime * speed * cosf(camera.pitch);
+        camera.z -= eTime * speed * sinf(camera.pitch);
     }
     if (window->getKeyboard().isDown('A'))
     {
-        camera.x -= eTime * speed * cosf(camera.yaw);
-        camera.z += eTime * speed * sinf(camera.yaw);
+        camera.x -= eTime * speed * cosf(camera.pitch);
+        camera.z += eTime * speed * sinf(camera.pitch);
     }
     if (window->getKeyboard().isDown(VK_SPACE))
     {
@@ -205,26 +228,51 @@ void CApp::tick()
     {
         camera.y -= eTime * speed;
     }
-    static bool spaceDown = false;
 
     // Look at function
-    int cameraX = static_cast<int>(floor(camera.x + 0.5f));
-    int cameraY = static_cast<int>(floor(camera.z + 0.5f));
-    // End look at function
+    //DirectX::XMVECTOR cameraVector = DirectX::XMVector3Transform(DirectX::XMVectorSet(-1.0f, 0.0f, 0.0f, 0.0f), camera.getCamera());
 
+    DirectX::XMVECTOR cameraVector = DirectX::XMVectorSet(
+        -cosf(camera.pitch) * cosf(camera.yaw),
+        sinf(camera.yaw),
+        -sinf(camera.pitch) * cosf(camera.yaw),
+        0.0f
+    );
+
+    DirectX::XMVECTOR camP = DirectX::XMVectorSet(camera.z, camera.y, camera.x, 0.0f);
+    DirectX::XMVECTOR cam = DirectX::XMPlaneIntersectLine(DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), camP,
+        DirectX::XMVectorAdd(camP, cameraVector));
+    DirectX::XMVECTOR camUP = DirectX::XMPlaneIntersectLine(DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, -1.0f), camP,
+        DirectX::XMVectorAdd(camP, cameraVector));
+    int cameraX = static_cast<int>(floor(DirectX::XMVectorGetZ(cam) + 0.5f));
+    int cameraY = static_cast<int>(floor(DirectX::XMVectorGetX(cam) + 0.5f));
+
+    int cameraXUP = static_cast<int>(floor(DirectX::XMVectorGetZ(camUP) + 0.5f));
+    int cameraYUP = static_cast<int>(floor(DirectX::XMVectorGetX(camUP) + 0.5f));
+    // End look at function
+    if (cameraXUP >= 0 && cameraXUP < 20 && cameraYUP >= 0 && cameraYUP < 20 && gameTable[cameraXUP][cameraYUP] == 1)
+    {
+        cameraX = cameraXUP;
+        cameraY = cameraYUP;
+    }
+
+    static bool spaceDown = false;
+    static int brush = 0;
     if (window->getKeyboard().isDown(VK_CONTROL))
     {
-        if (spaceDown == false)
+        if (cameraX >= 0 && cameraX < 20 && cameraY >= 0 && cameraY < 20)
         {
-            if (cameraX >= 0 && cameraX < 20 && cameraY >= 0 && cameraY < 20)
+            if (spaceDown == false)
             {
-                gameTable[cameraX][cameraY] = !gameTable[cameraX][cameraY];
+                brush = !gameTable[cameraX][cameraY];
+                spaceDown = true;
             }
-            spaceDown = true;
+            gameTable[cameraX][cameraY] = brush;
         }
     }
     if (window->getKeyboard().isUp(VK_CONTROL))
     {
+        saveMaze(gameTable);
         spaceDown = false;
     }
 
@@ -234,16 +282,16 @@ void CApp::tick()
     {
         if (mouseX != -1)
         {
-        camera.yaw += (window->getMouse().getX() - mouseX) * mouseSensitivity;
+        camera.pitch += (window->getMouse().getX() - mouseX) * mouseSensitivity;
 
-        camera.roll += (window->getMouse().getY() - mouseY) * mouseSensitivity;
-        if (camera.roll > DirectX::XM_PI / 2.0f)
+        camera.yaw += (window->getMouse().getY() - mouseY) * mouseSensitivity;
+        if (camera.yaw > DirectX::XM_PI / 2.0f)
         {
-            camera.roll = DirectX::XM_PI / 2.0f;
+            camera.yaw = DirectX::XM_PI / 2.0f;
         }
-        if (camera.roll < -DirectX::XM_PI / 2.0f)
+        if (camera.yaw < -DirectX::XM_PI / 2.0f)
         {
-            camera.roll = -DirectX::XM_PI / 2.0f;
+            camera.yaw = -DirectX::XM_PI / 2.0f;
         }
         }
         mouseY = window->getMouse().getY();

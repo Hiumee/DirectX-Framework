@@ -150,9 +150,15 @@
     <Image Include="path.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="blue.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Text Include="map.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="maze.txt">
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>
