@@ -23,6 +23,7 @@ private:
     int gameTable[20][20];
     std::unique_ptr<TSurface> tSurface;
     std::unique_ptr<TSurface> pathSurface;
+    std::unique_ptr<TSurface> wallSurface;
 
     std::unique_ptr<MyWindow> window;
     CTime clock;

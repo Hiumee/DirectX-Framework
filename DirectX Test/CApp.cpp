@@ -11,6 +11,41 @@
 #include <unordered_map>
 #include <map>
 
+void DrawCube(TSurface* surface, CGraphics& graphics, int gameTable[20][20], int i, int j)
+{
+
+    surface->setPosition(point3d{ (float)i, 1.0f, (float)j });
+    surface->setRotation(point3d{ 0.25f, 0.0f, 0.0f });
+    surface->draw(graphics);
+
+    if (j - 1 < 0 || gameTable[i][j - 1] != 1)
+    {
+        surface->setPosition(point3d{ (float)i, 0.5f, (float)j - 0.5f });
+        surface->setRotation(point3d{ 0.0f, 0.0f, 0.0f });
+        surface->draw(graphics);
+    }
+
+    if (j + 1 >= 20 || gameTable[i][j + 1] != 1)
+    {
+        surface->setPosition(point3d{ (float)i, 0.5f, (float)j + 0.5f });
+        surface->setRotation(point3d{ 0.0f, 0.5f, 0.0f });
+        surface->draw(graphics);
+    }
+
+    if (i - 1 < 0 || gameTable[i - 1][j] != 1)
+    {
+        surface->setPosition(point3d{ (float)i - 0.5f, 0.5f, (float)j });
+        surface->setRotation(point3d{ 0.0f, 0.25f, 0.0f });
+        surface->draw(graphics);
+    }
+
+    if (i + 1 >= 20 || gameTable[i + 1][j] != 1)
+    {
+        surface->setPosition(point3d{ (float)i + 0.5f, 0.5f, (float)j });
+        surface->setRotation(point3d{ 0.0f, -0.25f, 0.0f });
+        surface->draw(graphics);
+    }
+}
 
 void saveMaze(int table[20][20])
 {
@@ -132,6 +167,10 @@ CApp::CApp(HINSTANCE hInstance)
     pathSurface = std::make_unique<TSurface>(window->getGraphics(), pathSurfaceT);
     pathSurface->setRotation(point3d{ 0.25f,0.0f,0.0f });
     pathSurface->setSize(point3d{ 0.5f,0.5f,0.5f });
+
+    wallSurface = std::make_unique<TSurface>(window->getGraphics(), wallSurfaceT);
+    wallSurface->setRotation(point3d{ 0.25f,0.0f,0.0f });
+    wallSurface->setSize(point3d{ 0.5f,0.5f,0.5f });
 
     clock.reset();
     mouseX = 400;
@@ -389,10 +428,9 @@ void CApp::tick()
     {
         for (int j = 0;j < 20;j++)
         {
-            if (gameTable[i][j] == 1)
+            if (gameTable[i][j] == 1 && !(i == cameraX && j == cameraY))
             {
-                pTestTexture->setPosition(point3d{ (float)i, 0.5f, (float)j });
-                pTestTexture->draw(window->getGraphics());
+                DrawCube(wallSurface.get(), window->getGraphics(), gameTable, i, j);
             }
         }
     }
@@ -402,10 +440,11 @@ void CApp::tick()
         TSurface::UPDATE = 1;
         if (gameTable[cameraX][cameraY] == 1)
         {
-            pathSurface->setPosition(point3d{ (float)cameraX, 1.01f, (float)cameraY });
+            DrawCube(pathSurface.get(), window->getGraphics(), gameTable, cameraX, cameraY);
         }
         else
         {
+            pathSurface->setRotation(point3d{ 0.25f, 0.0f, 0.0f });
             pathSurface->setPosition(point3d{ (float)cameraX, 0.0f, (float)cameraY });
         }
         pathSurface->draw(window->getGraphics());

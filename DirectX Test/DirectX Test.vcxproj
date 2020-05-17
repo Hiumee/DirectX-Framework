@@ -246,6 +246,7 @@
     <Image Include="blue.png" />
     <Image Include="cake.dds" />
     <Image Include="cake.png" />
+    <Image Include="diamon.png" />
     <Image Include="path.png" />
     <Image Include="wall.png" />
   </ItemGroup>

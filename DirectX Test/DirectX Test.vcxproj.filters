@@ -153,6 +153,9 @@
     <Image Include="blue.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="diamon.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Text Include="map.txt">
