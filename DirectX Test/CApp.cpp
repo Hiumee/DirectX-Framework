@@ -46,7 +46,7 @@ std::pair<int, int> pathFind(int table[20][20], std::pair<int, int> start, std::
                 if (i == 0 && j != 0 || i != 0 && j == 0)
                 {
 
-                    if (current.first + i >= 0 && current.second + j >= 0 && current.first + i < 20 && current.second + j < 20 && table[current.first + i][current.second + j] == 0)
+                    if (current.first + i >= 0 && current.second + j >= 0 && current.first + i < 20 && current.second + j < 20 && table[current.first + i][current.second + j] != 1)
                     {
                         position newPoint(current.first + i, current.second + j);
                         if (dist.find(newPoint) == dist.end() || dist[current] + 1 < dist[newPoint])
@@ -63,6 +63,11 @@ std::pair<int, int> pathFind(int table[20][20], std::pair<int, int> start, std::
         {
             found = true;
         }
+    }
+
+    if (!found)
+    {
+        return start;
     }
 
     position current = end;
@@ -200,6 +205,28 @@ void CApp::tick()
     {
         camera.y -= eTime * speed;
     }
+    static bool spaceDown = false;
+
+    // Look at function
+    int cameraX = static_cast<int>(floor(camera.x + 0.5f));
+    int cameraY = static_cast<int>(floor(camera.z + 0.5f));
+    // End look at function
+
+    if (window->getKeyboard().isDown(VK_CONTROL))
+    {
+        if (spaceDown == false)
+        {
+            if (cameraX >= 0 && cameraX < 20 && cameraY >= 0 && cameraY < 20)
+            {
+                gameTable[cameraX][cameraY] = !gameTable[cameraX][cameraY];
+            }
+            spaceDown = true;
+        }
+    }
+    if (window->getKeyboard().isUp(VK_CONTROL))
+    {
+        spaceDown = false;
+    }
 
     const float mouseSensitivity = 0.01f;
 
@@ -263,7 +290,7 @@ void CApp::tick()
         red += eTime * changePerSecond;
     }
 
-    const static float finderSpeed = 5.0f;
+    const static float finderSpeed = 1.0f;
     const static float epsilon = 0.1f;
 
     std::pair<int, int> spaceToGo = pathFind(gameTable, std::pair<int, int>(finderX, finderY), std::pair<int, int>(19, 19));
@@ -301,7 +328,7 @@ void CApp::tick()
     {
         for (int j = 0;j < 20;j++)
         {
-            if (gameTable[i][j] == 0)
+            if (gameTable[i][j] != 1 && !(i == cameraX && j == cameraY))
             {
                 tSurface->setPosition(point3d{ (float)i, 0.0f, (float)j });
                 tSurface->draw(window->getGraphics());
@@ -322,19 +349,33 @@ void CApp::tick()
         }
     }
     TCube::UPDATE = 1;
-    TSurface::UPDATE = 1;
-    for (int i = 0;i < 20;i++)
+    if (cameraX >= 0 && cameraX < 20 && cameraY >= 0 && cameraY < 20)
     {
-        for (int j = 0;j < 20;j++)
+        TSurface::UPDATE = 1;
+        if (gameTable[cameraX][cameraY] == 1)
         {
-            if (gameTable[i][j] == 2)
-            {
-                pathSurface->setPosition(point3d{ (float)i, 0.0f, (float)j });
-                pathSurface->draw(window->getGraphics());
-            }
+            pathSurface->setPosition(point3d{ (float)cameraX, 1.01f, (float)cameraY });
         }
+        else
+        {
+            pathSurface->setPosition(point3d{ (float)cameraX, 0.0f, (float)cameraY });
+        }
+        pathSurface->draw(window->getGraphics());
+        TSurface::UPDATE = 0;
     }
-    TSurface::UPDATE = 1;
+    //TSurface::UPDATE = 1;
+    //for (int i = 0;i < 20;i++)
+    //{
+    //    for (int j = 0;j < 20;j++)
+    //    {
+    //        if (gameTable[i][j] == 2)
+    //        {
+    //            pathSurface->setPosition(point3d{ (float)i, 0.0f, (float)j });
+    //            pathSurface->draw(window->getGraphics());
+    //        }
+    //    }
+    //}
+    //TSurface::UPDATE = 1;
 
     finder->setPosition(point3d{ findX,0.25f,findY});
     finder->draw(window->getGraphics());
